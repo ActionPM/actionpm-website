@@ -1,8 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-CA">
 <head>
   <meta charset="utf-8">
-  <title>Bundled Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ActionPM | Property Management Data Intelligence</title>
+  <meta name="description" content="ActionPM turns fragmented property-management data into structured, searchable intelligence for safer decisions and better building operations.">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://actionpm.ca/">
+  <meta name="theme-color" content="#0f1116">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_CA">
+  <meta property="og:site_name" content="ActionPM">
+  <meta property="og:title" content="ActionPM | Property Management Data Intelligence">
+  <meta property="og:description" content="Turn fragmented property-management data into structured, searchable intelligence for safer decisions and better building operations.">
+  <meta property="og:url" content="https://actionpm.ca/">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="ActionPM | Property Management Data Intelligence">
+  <meta name="twitter:description" content="Turn fragmented property-management data into structured, searchable intelligence for safer decisions and better building operations.">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://actionpm.ca/#organization",
+        "name": "ActionPM",
+        "url": "https://actionpm.ca/",
+        "email": "bscott@actionpm.ca",
+        "description": "ActionPM structures fragmented property-management data so it can be trusted, searched, measured, and acted on."
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://actionpm.ca/#website",
+        "url": "https://actionpm.ca/",
+        "name": "ActionPM",
+        "publisher": {
+          "@id": "https://actionpm.ca/#organization"
+        },
+        "inLanguage": "en-CA"
+      }
+    ]
+  }
+  </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0f1116; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
@@ -296,6 +338,49 @@ document.addEventListener('DOMContentLoaded', async function() {
     // The manifest bytes are ours; SRI protects against CDN compromise, not this.
     template = template.replace(/\s+integrity="[^"]*"/gi, '').replace(/\s+crossorigin="[^"]*"/gi, '');
 
+    // Preserve search and social metadata after the bundled page replaces the
+    // outer document. The initial metadata serves non-JavaScript crawlers;
+    // this copy remains in the rendered document used by modern search bots.
+    const seoMetadata = [
+      '<title>ActionPM | Property Management Data Intelligence</title>',
+      '<meta name="description" content="ActionPM turns fragmented property-management data into structured, searchable intelligence for safer decisions and better building operations.">',
+      '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">',
+      '<link rel="canonical" href="https://actionpm.ca/">',
+      '<meta name="theme-color" content="#0f1116">',
+      '<meta property="og:type" content="website">',
+      '<meta property="og:locale" content="en_CA">',
+      '<meta property="og:site_name" content="ActionPM">',
+      '<meta property="og:title" content="ActionPM | Property Management Data Intelligence">',
+      '<meta property="og:description" content="Turn fragmented property-management data into structured, searchable intelligence for safer decisions and better building operations.">',
+      '<meta property="og:url" content="https://actionpm.ca/">',
+      '<meta name="twitter:card" content="summary">',
+      '<meta name="twitter:title" content="ActionPM | Property Management Data Intelligence">',
+      '<meta name="twitter:description" content="Turn fragmented property-management data into structured, searchable intelligence for safer decisions and better building operations.">',
+      '<script type="application/ld+json">',
+      JSON.stringify({
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'Organization',
+            '@id': 'https://actionpm.ca/#organization',
+            name: 'ActionPM',
+            url: 'https://actionpm.ca/',
+            email: 'bscott@actionpm.ca',
+            description: 'ActionPM structures fragmented property-management data so it can be trusted, searched, measured, and acted on.'
+          },
+          {
+            '@type': 'WebSite',
+            '@id': 'https://actionpm.ca/#website',
+            url: 'https://actionpm.ca/',
+            name: 'ActionPM',
+            publisher: { '@id': 'https://actionpm.ca/#organization' },
+            inLanguage: 'en-CA'
+          }
+        ]
+      }).replace(/</g, '\\u003c'),
+      '</' + 'script>'
+    ].join('');
+
     const resourceScript = '<script>window.__resources = ' +
       JSON.stringify(resourceMap).replace(/<\//g, '<\\/') +
       ';</' + 'script>';
@@ -307,8 +392,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     const headOpen = template.match(/<head[^>]*>/i);
     if (headOpen) {
       const i = headOpen.index + headOpen[0].length;
-      template = template.slice(0, i) + resourceScript + template.slice(i);
+      template = template.slice(0, i) + resourceScript + seoMetadata + template.slice(i);
     }
+    template = template.replace(/<html(?![^>]*\blang=)([^>]*)>/i, '<html lang="en-CA"$1>');
 
     // Parse the template and swap the root element. Scripts inserted via
     // DOMParser/replaceWith are inert per spec — re-create each with
@@ -316,6 +402,23 @@ document.addEventListener('DOMContentLoaded', async function() {
     // preserve ordering (React before ReactDOM before Babel before text/babel).
     const doc = new DOMParser().parseFromString(template, 'text/html');
     document.documentElement.replaceWith(doc.documentElement);
+
+    // Give the rendered page one semantic primary heading without changing
+    // its appearance. The bundled source otherwise renders every heading as
+    // a generic div, which weakens document structure for crawlers and
+    // assistive technology.
+    const primaryHeading = Array.from(document.querySelectorAll('div')).find(function(el) {
+      return el.childElementCount === 0 &&
+        el.textContent.trim() === 'A connected operating system for residential property management.';
+    });
+    if (primaryHeading) {
+      const h1 = document.createElement('h1');
+      for (const attr of Array.from(primaryHeading.attributes)) {
+        h1.setAttribute(attr.name, attr.value);
+      }
+      while (primaryHeading.firstChild) h1.appendChild(primaryHeading.firstChild);
+      primaryHeading.replaceWith(h1);
+    }
 
     // Resolve page-frame markers: mint this document's own blob for each
     // framed page — from local text when this is the root, otherwise by
